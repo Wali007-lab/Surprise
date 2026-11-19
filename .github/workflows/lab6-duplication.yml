@@ -1,0 +1,35 @@
+# Duplication detection workflow for Lab 6.
+name: Lab6 - Duplication
+
+on:
+  push:
+    branches:
+      - semester-investigation
+      - 'lab6-*'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  duplication:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the exact pushed revision
+        uses: actions/checkout@v4
+
+      - name: Analyze duplication and publish SARIF
+        uses: kucherenko/jscpd@v5
+        with:
+          version: '5.3.2'
+          reporters: console,json,sarif
+          ignore: '**/node_modules/**,**/.venv/**,**/generated/**,**/build/**,**/dist/**,**/doc/**,**/examples/**,**/tests/**'
+
+      - name: Keep a downloadable copy of the report (time-limited)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab6-duplication-report
+          path: report/
+          if-no-files-found: warn
+          retention-days: 30

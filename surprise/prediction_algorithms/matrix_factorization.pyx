@@ -156,6 +156,28 @@ class SVD(AlgoBase):
 
         return self
 
+    def _init_factors_and_biases(self, trainset):
+        """Initialize user and item biases and latent factor matrices.
+
+        Returns:
+            bu (ndarray): 1D array of zeros for user biases.
+            bi (ndarray): 1D array of zeros for item biases.
+            pu (ndarray): 2D array of user latent factors drawn from normal distribution.
+            qi (ndarray): 2D array of item latent factors drawn from normal distribution.
+        """
+        rng = get_rng(self.random_state)
+
+        bu = np.zeros(trainset.n_users, dtype=np.double)
+        bi = np.zeros(trainset.n_items, dtype=np.double)
+        pu = rng.normal(
+            self.init_mean, self.init_std_dev, size=(trainset.n_users, self.n_factors)
+        )
+        qi = rng.normal(
+            self.init_mean, self.init_std_dev, size=(trainset.n_items, self.n_factors)
+        )
+
+        return bu, bi, pu, qi
+
     def sgd(self, trainset):
 
         # OK, let's breath. I've seen so many different implementation of this
@@ -190,16 +212,16 @@ class SVD(AlgoBase):
         # anymore, we need to compute the dot products by hand, and update
         # user and items factors by iterating over all factors...
 
-        rng = get_rng(self.random_state)
+        bu_np, bi_np, pu_np, qi_np = self._init_factors_and_biases(trainset)
 
         # user biases
-        cdef double [::1] bu = np.zeros(trainset.n_users, dtype=np.double)
+        cdef double [::1] bu = bu_np
         # item biases
-        cdef double [::1] bi = np.zeros(trainset.n_items, dtype=np.double)
+        cdef double [::1] bi = bi_np
         # user factors
-        cdef double [:, ::1] pu = rng.normal(self.init_mean, self.init_std_dev, size=(trainset.n_users, self.n_factors))
+        cdef double [:, ::1] pu = pu_np
         # item factors
-        cdef double [:, ::1] qi = rng.normal(self.init_mean, self.init_std_dev, size=(trainset.n_items, self.n_factors))
+        cdef double [:, ::1] qi = qi_np
 
         cdef int u, i, f
         cdef int n_factors = self.n_factors

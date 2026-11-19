@@ -1,0 +1,40 @@
+# Python-specific workflow for Lab 6 static analysis.
+name: Lab6 - Python Ruff
+
+on:
+  push:
+    branches:
+      - semester-investigation
+      - 'lab6-*'
+
+permissions:
+  contents: read
+
+jobs:
+  ruff-analysis:
+    runs-on: ubuntu-24.04
+    env:
+      SOURCE_PATH: surprise
+    steps:
+      - name: Check out this exact revision
+        uses: actions/checkout@v4
+
+      - name: Install analyzer
+        run: |
+          python -m pip install 'ruff==0.14.4'
+          ruff --version
+
+      - name: Collect relevant complexity/parameter findings
+        run: |
+          mkdir -p lab6-reports
+          # Exit status 1 when findings exist is expected; the JSON still gets uploaded.
+          ruff check "$SOURCE_PATH" --select C901,PLR0912,PLR0913,PLR0915 --output-format json > lab6-reports/ruff.json || true
+
+      - name: Upload JSON findings even when the analyzer reports violations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab6-ruff-report
+          path: lab6-reports/
+          if-no-files-found: warn
+          retention-days: 30

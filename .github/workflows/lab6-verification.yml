@@ -1,0 +1,36 @@
+# Dedicated SVD regression verification workflow for Lab 6.
+name: Lab6 - Regression Verification
+
+on:
+  push:
+    branches:
+      - semester-investigation
+      - 'lab6-*'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository at exact revision
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install build and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel "numpy==1.24.1" "scipy==1.10.0" "joblib==1.4.0" "Cython>=3.1.0" pytest pandas
+
+      - name: Install Surprise with compiled Cython extensions
+        run: |
+          pip install -e . --no-build-isolation
+
+      - name: Run SVD parameter and golden regression tests
+        run: |
+          pytest -v tests/test_SVD.py tests/test_algorithms.py -k "test_SVD_parameters or test_sanity_checks"
