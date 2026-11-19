@@ -156,8 +156,19 @@ class SVD(AlgoBase):
 
         return self
 
-    def sgd(self, trainset):
 
+    def _compute_error(self, u, i, r, pu, qi, bu, bi,
+                       n_factors, global_mean):
+
+        dot = 0
+
+        for f in range(n_factors):
+            dot += qi[i, f] * pu[u, f]
+
+        return r - (global_mean + bu[u] + bi[i] + dot)
+
+
+    def sgd(self, trainset):
         # OK, let's breath. I've seen so many different implementation of this
         # algorithm that I just not sure anymore of what it should do. I've
         # implemented the version as described in the BellKor papers (RS
@@ -227,13 +238,22 @@ class SVD(AlgoBase):
 
             for u, i, r in trainset.all_ratings():
                 # compute current error
-                dot = 0  # <q_i, p_u>
-                for f in range(n_factors):
-                    dot += qi[i, f] * pu[u, f]
-                err = r - (global_mean + bu[u] + bi[i] + dot)
+
+                err = self._compute_error(
+                    u,
+                    i,
+                    r,
+                    pu,
+                    qi,
+                    bu,
+                    bi,
+                    n_factors,
+                    global_mean
+                )
 
                 # update biases
                 if biased:
+
                     bu[u] += lr_bu * (err - reg_bu * bu[u])
                     bi[i] += lr_bi * (err - reg_bi * bi[i])
 
