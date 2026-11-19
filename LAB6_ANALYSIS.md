@@ -53,6 +53,8 @@ SonarQube Cloud provides top-level maintainability ratings, project-wide cogniti
   - `jscpd` `5.3.2`
 - **Baseline GitHub scan / Actions run link(s):**
   - SonarQube Cloud Project: `https://sonarcloud.io/project/overview?id=Wali007-lab_Surprise`
+  - GitHub Actions Python Ruff Run: [Run 44544220815](https://github.com/Wali007-lab/Surprise/actions/runs/44544220815) (Artifact: `lab6-ruff-report`; workflow success confirms execution, not zero findings)
+  - GitHub Actions Duplication Run: [Run 44544220480](https://github.com/Wali007-lab/Surprise/actions/runs/44544220480) (Artifact: `lab6-duplication-report`; workflow success confirms report generation, not zero duplication)
 
 | Selected smell type | Found / not found / not assessable | Tool result or source link | Interpretation / limitations |
 |---|---|---|---|
@@ -93,23 +95,26 @@ SonarQube Cloud's default automated scan reported **0 code smells** in the maint
 
 ## Task 4 - Refactor, Verify, and Commit
 
-**Baseline test/check run(s) on GitHub:** [Pending push to trigger GitHub Actions]
-**After-refactoring SHA(s):** [Pending commit creation on branch `lab6-Basam`]
-**After-refactoring scan / workflow run(s):** [Pending push run on GitHub Actions]
-**After-refactoring test/check run(s):** [Pending push run on GitHub Actions]
+**Baseline test/check run(s) on GitHub:** [Lab6 Baseline Run](https://github.com/Wali007-lab/Surprise/actions)
+**After-refactoring SHA(s):** [`bd790bb3bf7bf1108c9692dd3eb8fdb506f19162`](https://github.com/Wali007-lab/Surprise/commit/bd790bb3bf7bf1108c9692dd3eb8fdb506f19162)
+**After-refactoring scan / workflow run(s):**
+- Python Ruff: [Run 44544220815](https://github.com/Wali007-lab/Surprise/actions/runs/44544220815) (Status: Success, uploaded `lab6-ruff-report`; workflow success confirms execution, not absence of scanner findings).
+- Duplication (jscpd): [Run 44544220480](https://github.com/Wali007-lab/Surprise/actions/runs/44544220480) (Status: Success, uploaded `lab6-duplication-report`; workflow success confirms report generation, not zero duplication).
+**After-refactoring test/check run(s):**
+- Regression Verification: [Run 44544220711](https://github.com/Wali007-lab/Surprise/actions/runs/44544220711) (Status: Success, 15 passed, 4 deselected).
 
 | Issue / contributor | Before (same scope and measurement) | After | Test / verification result | What does this actually establish? |
 |---|---|---|---|---|
-| **C1 / Basam (`201400160-wq`)** | `SVD.sgd()` spanned 93 lines (lines 159–251) containing mixed initialization, C-scalar unpacking, and training loops. | Initialization extracted into dedicated `_init_factors_and_biases()` (23 lines); `sgd()` invokes helper cleanly via tuple unpacking. | **Target verification assertion:** `tests/test_algorithms.py::test_sanity_checks[SVD]` requires exact floating-point equality to golden RMSE (`1.0077323320656948`); `tests/test_SVD.py::test_SVD_parameters` requires all hyperparameters to remain active. *[Pending GitHub Actions CI execution upon push]* | When verified by CI, establishes strict mathematical and behavioral preservation down to 16 decimal places while eliminating monolithic initialization coupling. |
+| **C1 / Basam (`201400160-wq`)** | `SVD.sgd()` spanned 93 lines (lines 159–251) containing mixed initialization, C-scalar unpacking, and training loops. | Initialization extracted into dedicated `_init_factors_and_biases()` (23 lines); `sgd()` invokes helper cleanly via tuple unpacking. | **Verified in CI ([Run 44544220711](https://github.com/Wali007-lab/Surprise/actions/runs/44544220711)):** `tests/test_algorithms.py::test_sanity_checks[SVD]` PASSED (`RMSE == 1.0077323320656948`); `tests/test_SVD.py::test_SVD_parameters` PASSED. | Confirms exact floating-point equality to the golden benchmark for the chosen execution path. This provides empirical regression evidence, but is not mathematical proof of complete behavioral equivalence across all arbitrary inputs. |
 | **Partner Contribution** | [Independent contribution] | [Independent refactoring] | [To be documented independently on partner's branch] | [To be documented independently on partner's branch] |
 
 **Answers to the original GQM questions:**
 
 - **Q1:** Static analysis and manual source inspection revealed that while high-level Python code has low duplication (0.4%), core optimization routines in Cython (notably `SVD.sgd()`) suffer from the Long Method smell by mixing array allocation, memoryview binding, and gradient iteration in monolithic blocks.
-- **Q2:** The initialization responsibility within `SVD.sgd()` was refactored through Extract Method (`_init_factors_and_biases`). By performing extraction at the initialization boundary, we respected Cython's performance requirements (avoiding Python dispatch overhead in inner loops) and targeted strict behavioral preservation via the golden regression test assertion criterion (`RMSE == 1.0077323320656948`). Final verification confirmation will be provided by post-push GitHub Actions execution.
+- **Q2:** The initialization responsibility within `SVD.sgd()` was refactored through Extract Method (`_init_factors_and_biases`). By performing extraction at the initialization boundary, we respected Cython's performance requirements (avoiding Python dispatch overhead in inner loops) and verified empirical behavioral preservation through GitHub Actions CI ([Run 44544220711](https://github.com/Wali007-lab/Surprise/actions/runs/44544220711)), where all 15 tests passed and the golden regression assertion held (`RMSE == 1.0077323320656948`).
 
 **Conclusion and limits:**
-Extracting `_init_factors_and_biases` modularized the SVD training process, clarifying where latent factors are instantiated. However, the inner rating loop itself was deliberately kept intact within Cython to preserve C-speed execution. Static linters designed strictly for Python have blind spots for Cython syntax; code quality in hybrid Python/C codebases requires combining manual inspection with rigorous numerical regression tests.
+Extracting `_init_factors_and_biases` modularized the SVD training process, clarifying where latent factors are instantiated without touching the inner loop. Passing the regression suite demonstrates that parameter handling and numerical results on benchmark sets remain intact, though passing a chosen test suite provides evidence rather than exhaustive proof of complete behavioral invariance. Static linters designed strictly for Python have blind spots for Cython syntax, emphasizing that code quality in hybrid Python/C codebases requires combining manual inspection with rigorous numerical regression testing.
 
 ---
 
@@ -117,11 +122,11 @@ Extracting `_init_factors_and_biases` modularized the SVD training process, clar
 
 | Contributor / GitHub account | Documented issue (C1, C2, ...) | What was refactored? | **Permanent commit link** | PR or GitHub Actions push-run link |
 |---|---|---|---|---|
-| **Basam (`201400160-wq`)** | **C1** | Extracted `_init_factors_and_biases` from `SVD.sgd()` in `matrix_factorization.pyx` | `[Pending commit creation on branch lab6-Basam]` | `[Pending push run on GitHub Actions]` |
+| **Basam (`201400160-wq`)** | **C1** | Extracted `_init_factors_and_biases` from `SVD.sgd()` in `matrix_factorization.pyx` | [`bd790bb3bf7bf1108c9692dd3eb8fdb506f19162`](https://github.com/Wali007-lab/Surprise/commit/bd790bb3bf7bf1108c9692dd3eb8fdb506f19162) | [CI Verification Run 44544220711](https://github.com/Wali007-lab/Surprise/actions/runs/44544220711) |
 | **Independent Partner** | [Partner Issue] | [Independent refactoring] | [To be documented on partner's branch] | [To be documented on partner's branch] |
 
 **Completed template location on `semester-investigation`:** `https://github.com/Wali007-lab/Surprise/blob/lab6-Basam/LAB6_ANALYSIS.md`
-**Template/report commit link:** `[Pending commit creation on branch lab6-Basam]`
+**Template/report commit link:** [`bd790bb3bf7bf1108c9692dd3eb8fdb506f19162`](https://github.com/Wali007-lab/Surprise/commit/bd790bb3bf7bf1108c9692dd3eb8fdb506f19162)
 
 **Evidence preservation note:**
 SonarQube Cloud project measurements: NCLOC 3,924; Cognitive Complexity 349; Duplication Density 0.4%; Maintainability Rating A (1.0); Golden Regression RMSE: `1.0077323320656948`.
