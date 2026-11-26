@@ -1,0 +1,17 @@
+name: Lab7 Baseline
+
+on:
+  push:
+    branches:
+      - lab7-waleed
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Show Python version
+        run: python --version
