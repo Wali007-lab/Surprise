@@ -1,0 +1,192 @@
+# Lab #7 — From Code to Operation: Investigation Record
+
+**Team:** Waleed & Basam
+
+**Student(s) / GitHub handle(s):**
+- Waleed Younis — @Wali007-lab
+- Basam — [GitHub Handle]
+
+**Fork / working branch:**
+- Repository: Wali007-lab/Surprise
+- Branch: lab7-waleed
+
+**Upstream project and pinned version:**
+- Surprise (scikit-surprise)
+- https://github.com/NicolasHug/Surprise
+
+---
+
+## 1. Stakeholder, goal and selected functionality
+
+### Stakeholder concern
+
+A release engineer wants confidence that the selected functionality can be deployed and executed successfully on a clean Ubuntu environment and that future changes can be verified automatically.
+
+### GQM Goal
+
+Analyze the prediction functionality of the Surprise recommendation system for the purpose of evaluation and verification with respect to operational quality from the viewpoint of a release engineer in the context of a GitHub fork running on GitHub-hosted Ubuntu runners.
+
+| Question | Question in your own words | Evidence / Measurement |
+|----------|---------------------------|------------------------|
+| Q1 | Can the selected functionality run successfully on a clean GitHub Actions Ubuntu environment? | Successful GitHub Actions execution and prediction output |
+| Q2 | Can future behavior changes be detected and verified through automation? | Comparison between baseline and modified outputs |
+
+### Selected function/component
+
+**Functionality selected:** SVD rating prediction.
+
+The script trains an SVD recommendation model using a small dataset and predicts a rating for a user-item pair.
+
+### Why this represents the software's purpose
+
+The main goal of the Surprise library is to build and evaluate recommender systems. Rating prediction using SVD is one of the core features provided by the library.
+
+### Representative input and baseline expectation
+
+Input ratings:
+
+```python
+[
+    ("1", "1", 5),
+    ("1", "2", 4),
+    ("2", "1", 3),
+    ("2", "2", 5)
+]
+```
+
+Expected behavior:
+
+- Dataset loads successfully
+- SVD model trains successfully
+- A prediction is generated
+- Prediction is displayed on the console
+
+### Planned small behavior change
+
+A later version will modify the observable prediction behavior/output and verify the change through GitHub Actions.
+
+### What must still work unchanged?
+
+- Workflow must complete successfully
+- Model must train successfully
+- Prediction must still be generated
+
+---
+
+# 2. Baseline: deploy and execute on GitHub
+
+| Evidence | Baseline |
+|-----------|-----------|
+| Baseline commit SHA | 1b01da1 |
+| Workflow file | `.github/workflows/lab7.yml` |
+| Runtime | GitHub-hosted Ubuntu runner |
+| Python version | Python 3.12 |
+| How fork code is verified | Installed using `python -m pip install .` |
+| Functional case executed | `python lab7/predict_rating.py` |
+| Expected behavior | Generate a prediction |
+| Observed behavior | Prediction generated successfully |
+| Prediction result | 4.3 |
+| Workflow result | Success |
+| GitHub Actions run | Run #8 |
+
+### Baseline workflow
+
+The workflow performs the following steps:
+
+```text
+Checkout repository
+↓
+Setup Python 3.12
+↓
+Install local repository using pip install .
+↓
+Install pandas dependency
+↓
+Execute predict_rating.py
+↓
+Generate prediction output
+```
+
+### What does this establish?
+
+This establishes that the selected functionality executes successfully on a clean GitHub-hosted Ubuntu environment and that GitHub Actions is using the repository version of the code.
+
+### What does it not establish?
+
+The experiment does not evaluate recommendation accuracy on large datasets or production workloads.
+
+---
+
+# 3. Controlled change and verification
+
+**This section will be completed by Basam (Task 3).**
+
+### Source/function changed
+
+`lab7/predict_rating.py`
+
+### Purpose of change
+
+Introduce and verify a controlled behavioral change while ensuring the workflow remains operational.
+
+| Item | Before Change | After Change |
+|--------|--------|--------|
+| Same input/case | Same ratings dataset | Same ratings dataset |
+| Expected behavior | Generate baseline output | Generate modified output |
+| Observed behavior | Prediction = 4.3 | To be completed |
+| Automated verification | Success | To be completed |
+| Regression check | Workflow succeeds | Workflow succeeds |
+| Actions run URL | Run #8 | To be completed |
+| Commit SHA | 1b01da1 | To be completed |
+
+### Unexpected failures observed during baseline work
+
+Several deployment issues were identified and corrected:
+
+1. Import-related failures
+2. Workflow indentation problems
+3. Missing script in repository
+4. Missing pandas dependency
+5. Installing PyPI package instead of local fork
+
+Each issue was diagnosed through GitHub Actions logs and fixed before obtaining the successful baseline run.
+
+---
+
+# 4. Engineering judgment and submission
+
+### Answer Q1
+
+Yes. The selected functionality executed successfully on a GitHub-hosted Ubuntu runner and produced a valid prediction result.
+
+### Answer Q2
+
+Yes. GitHub Actions provides a repeatable mechanism for detecting behavioral changes by comparing outputs between versions.
+
+### Release decision
+
+Accept the baseline version.
+
+The selected functionality executed successfully, dependencies were resolved, and the workflow verified operation using the repository version of the project.
+
+### One important limitation
+
+Only a small sample dataset was used. Recommendation quality on larger datasets was not evaluated.
+
+---
+
+## GitHub Evidence
+
+| Evidence | Link |
+|-----------|-----------|
+| Lab #7 working branch | lab7-waleed |
+| Baseline successful commit | 1b01da1 |
+| Baseline successful run | Run #8 |
+| Student 1 meaningful commits | 707d7ee, 117599a, 1b01da1 |
+| Student 2 meaningful commits | To be completed by Basam |
+
+---
+
+## LLM Assistance
+
+An LLM was used to help draft workflow configurations, troubleshooting steps, and report wording. All code changes, workflow executions, GitHub Actions runs, and observed outputs were independently verified through actual execution on GitHub-hosted runners.
