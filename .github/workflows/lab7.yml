@@ -1,0 +1,40 @@
+name: Lab7 Verification
+
+on:
+  push:
+    branches:
+      - lab7-waleed
+      - lab7-Basam
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install project from local fork
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install pandas pytest
+
+      - name: Verify commit SHA and installed Surprise path
+        run: |
+          git rev-parse HEAD
+          python -c "import surprise; print('Surprise path:', surprise.__file__)"
+
+      - name: Run prediction script
+        run: |
+          python lab7/predict_rating.py
+
+      - name: Run Task 3 verification and SVD regression tests
+        run: |
+          python -m pytest -v tests/test_lab7_prediction.py
+          python -m pytest -v tests/test_SVD.py tests/test_algorithms.py -k "test_SVD_parameters or test_sanity_checks"
