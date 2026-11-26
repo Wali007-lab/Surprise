@@ -18,11 +18,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install project
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install .
+          python -m pip install pandas numpy scipy scikit-surprise
 
-      - name: List built package files
+      - name: Run prediction script
         run: |
-          find . -type f | grep similarities || true
+          python lab7/predict_rating.py
