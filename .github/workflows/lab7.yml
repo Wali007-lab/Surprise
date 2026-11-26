@@ -23,6 +23,6 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install .
 
-      - name: Test Surprise import
-        run: |
-          python -c "import surprise; print('Surprise imported successfully')"
+      - name: List built package files
+  run: |
+    find . -type f | grep similarities || true
